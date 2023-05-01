@@ -1,0 +1,4 @@
+00000	1	ayamp	25000.00	04-03-2023	Ayam Pant
+00002	2	shyam	24.00	04-03-2023	Shyam Dai
+00003	2	hulk	15.00	04-03-2023	Hulk Hero
+00004	1	4	22000.00	04-03-2023	Test Employee
