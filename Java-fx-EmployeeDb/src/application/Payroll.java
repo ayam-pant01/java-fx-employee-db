@@ -3,7 +3,12 @@ package application;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Scanner;
 import java.text.SimpleDateFormat;
@@ -45,11 +50,13 @@ public class Payroll {
 				double salary = Double.parseDouble(parts[3]);
 				String currDate = parts[4];
 				String name = parts[5];
+			    byte[] salt = Base64.getDecoder().decode(parts[6]); // read in salt from file
+			    byte[] hash = Base64.getDecoder().decode(parts[7]); // read in hash from file
 				Employee newEmployee;
 				if (type == 1) {
-					newEmployee = new Salaried(id, loginName, salary, name, currDate, type);
+					newEmployee = new Salaried(id, loginName, salary, name, currDate, type,salt,hash);
 				} else {
-					newEmployee = new Hourly(id, loginName, name, currDate, salary, type);
+					newEmployee = new Hourly(id, loginName, name, currDate, salary, type,salt,hash);
 				}
 				employeeList.add(newEmployee);
 			}
@@ -75,9 +82,9 @@ public class Payroll {
 					String name = parts[5];
 					Employee terminatedEmp;
 					if (type == 1) {
-						terminatedEmp = new Salaried(id, loginName, salary, name, currDate, type);
+						terminatedEmp = new Salaried(id, loginName, salary, name, currDate, type,null,null);
 					} else {
-						terminatedEmp = new Hourly(id, loginName, name, currDate, salary, type);
+						terminatedEmp = new Hourly(id, loginName, name, currDate, salary, type,null,null);
 					}
 					terminatedEmployeeList.add(terminatedEmp);
 				}
@@ -91,20 +98,50 @@ public class Payroll {
 
 	}
 
+	public static Employee login(String loginName, String password) {
+	    for (Employee employee : employeeList) {
+	        if (employee.getLoginName().equals(loginName)) {
+	            byte[] storedHash = employee.getPasswordHash();
+	            byte[] salt = employee.getPasswordSalt();
+	            try {
+	                byte[] enteredHash = computeHash(password, salt);
+	                if (Arrays.equals(enteredHash, storedHash)) {
+	                    currentUser = employee;
+	                    return currentUser;
+	                } else {
+	                    System.out.println("Incorrect password.");
+	                    return null;
+	                }
+	            } catch (NoSuchAlgorithmException e) {
+	                System.out.println("Error: " + e.getMessage());
+	                return null;
+	            }
+	        }
+	    }
+	    System.out.println("User not found.");
+	    return null;
+	}
+	
 	public static void saveChanges() {
 		Payroll.writeEmployeeListtoFile(employeeList, EMOLOYEE_LIST);
 		Payroll.writeEmployeeListtoFile(terminatedEmployeeList, TERMINATED_EMPLOYEE_LIST);
 	}
 
 	private static void createBoss() {
-		System.out.println("Please enter information to employee. \n");
-		String loginName = "ayamp";
-		String name = "Ayam Pant";
-		Date curDate = new Date();
-		int empTypeChoice = 1;
-		Employee newEmployee = new Salaried(loginName, 50000.00, name, convertDateToString(curDate), empTypeChoice);
-		employeeList.add(newEmployee);
-		currentUser = newEmployee;
+		try {
+			System.out.println("Please enter information to employee. \n");
+			String loginName = "ayamp";
+			String name = "Ayam Pant";
+			Date curDate = new Date();
+			int empTypeChoice = 1;
+			byte[] randomSalt = getRandomSalt();
+			byte[] hash = computeHash("ayamp", randomSalt);
+			Employee newEmployee = new Salaried(loginName, 50000.00, name, convertDateToString(curDate), empTypeChoice,randomSalt,hash);
+			employeeList.add(newEmployee);
+			currentUser = newEmployee;
+		} catch (NoSuchAlgorithmException e) {
+			System.out.println("Failed to create boss due to hashing error: " + e.getMessage());
+		}
 	}
 
 	/**
@@ -158,11 +195,10 @@ public class Payroll {
 	public ArrayList<Employee> getEmployeeList() {
 		return employeeList;
 	}
-	
+
 	public ArrayList<Employee> getTerminatedEmployeeList() {
 		return terminatedEmployeeList;
 	}
-
 
 	public Employee getCurrentUser() {
 		return currentUser;
@@ -196,6 +232,30 @@ public class Payroll {
 			}
 		}
 		return null;
+	}
+
+	public static byte[] computeHash(String password, byte[] salt) throws NoSuchAlgorithmException {
+		byte[] passwordBytes = password.getBytes();
+		byte[] saltedPasswordBytes = new byte[salt.length + passwordBytes.length];
+		System.arraycopy(salt, 0, saltedPasswordBytes, 0, salt.length);
+		System.arraycopy(passwordBytes, 0, saltedPasswordBytes, salt.length, passwordBytes.length);
+
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		digest.update(saltedPasswordBytes);
+		byte[] hash = digest.digest();
+
+		byte[] saltedHash = new byte[salt.length + hash.length];
+		System.arraycopy(salt, 0, saltedHash, 0, salt.length);
+		System.arraycopy(hash, 0, saltedHash, salt.length, hash.length);
+
+		return saltedHash;
+	}
+
+	public static byte[] getRandomSalt() {
+		SecureRandom randomSalt = new SecureRandom();
+		byte[] salt = new byte[16];
+		randomSalt.nextBytes(salt);
+		return salt;
 	}
 
 }

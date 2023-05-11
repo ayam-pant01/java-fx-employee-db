@@ -5,30 +5,38 @@ package application;
  * @author ayamp
  *
  */
-public class Salaried extends Employee {
+public class Salaried extends Employee {	
 	/**
-	 * Constructor for existing users
-	 * @param id 
+	 * Constructor for existing users with password hash
+	 * 
+	 * @param id
 	 * @param login
 	 * @param salary
 	 * @param name
 	 * @param dateAdded
 	 * @param employeeType
+	 * @param passwordSalt
+	 * @param passwordHash
 	 */
-	public Salaried(int id, String login, double salary, String name, String dateAdded, int employeeType) {
-		super(id, login, salary, name, dateAdded, employeeType);
+	public Salaried(int id, String login, double salary, String name, String dateAdded, int employeeType, byte[] salt,
+			byte[] hash) {
+		super(id, login, salary, name, dateAdded, employeeType,salt,hash);
 	}
 
 	/**
-	 * Constructor for new users
+	 * Constructor with salt encryption for new users
+	 * 
 	 * @param login
 	 * @param salary
 	 * @param name
 	 * @param dateAdded
 	 * @param employeeType
+	 * @param passwordSalt
+	 * @param passwordHash
 	 */
-	public Salaried(String login, double salary, String name, String dateAdded, int employeeType) {
-		super(login, salary, name, dateAdded, employeeType);
+	public Salaried(String login, double salary, String name, String dateAdded, int employeeType, byte[] salt,
+			byte[] hash) {
+		super(login, salary, name, dateAdded, employeeType,salt,hash);
 	}
 
 	@Override

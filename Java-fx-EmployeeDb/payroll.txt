@@ -1,6 +1,6 @@
 Payroll Report - 05-11-2023
 ID         Name                        Pay
-0          Ayam Pant               1041.67
-5          harhar                     4.00
-1          Shyam Dai                 92.63
-Total Pay: $1138.29
+0          Ayam Pant               2083.33
+1          test22                    72.00
+2          terminateme                0.00
+Total Pay: $2155.33

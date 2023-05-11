@@ -1,5 +1,6 @@
 package application;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -277,6 +278,14 @@ public class Main extends Application {
 		Label nameLabel = new Label("Name:");
 		TextField nameTextField = new TextField();
 
+		Label passwordLabel = new Label("Password:");
+		PasswordField passwordField = new PasswordField();
+		passwordField.setPromptText("Password:");
+		if (selectedEmployee != null) {
+			passwordLabel.setVisible(false);
+			passwordField.setVisible(false);
+		}
+
 		Label empTypeLabel = new Label("Employee Type:");
 		RadioButton salariedRadioButton = new RadioButton("Salaried");
 		RadioButton hourlyRadioButton = new RadioButton("Hourly");
@@ -299,7 +308,7 @@ public class Main extends Application {
 		empTypeToggleGroup.selectedToggleProperty().addListener((obsVal, oldVal, newVal) -> {
 			if (newVal == salariedRadioButton) {
 				salaryLabel.setVisible(true);
-				salaryTextField.setVisible(true);
+				salaryTextField.setVisible(true); 
 				hourlyRateLabel.setVisible(false);
 				hourlyRateTextField.setVisible(false);
 			} else if (newVal == hourlyRadioButton) {
@@ -357,28 +366,39 @@ public class Main extends Application {
 				return;
 			}
 			if (selectedEmployee == null) {
-				Date curDate = new Date();
-				Employee newEmployee;
-				if (empTypeChoice == 1) {
-					newEmployee = new Salaried(loginName, salary, name, Payroll.convertDateToString(curDate),
-							empTypeChoice);
-				} else {
-					newEmployee = new Hourly(loginName, name, Payroll.convertDateToString(curDate), hourlyRate,
-							empTypeChoice);
+
+				try {
+					Date curDate = new Date();
+					String password = passwordField.getText();
+					byte[] randomSalt = Payroll.getRandomSalt();
+					byte[] hash = Payroll.computeHash(password, randomSalt);
+					Employee newEmployee;
+					if (empTypeChoice == 1) {
+						newEmployee = new Salaried(loginName, salary, name, Payroll.convertDateToString(curDate),
+								empTypeChoice,randomSalt,hash);
+					} else {
+						newEmployee = new Hourly(loginName, name, Payroll.convertDateToString(curDate), hourlyRate,
+								empTypeChoice,randomSalt,hash);
+					}
+					start.addEmployee(newEmployee);
+					Alert alert = new Alert(AlertType.INFORMATION, "New employee " + name + " added!");
+					alert.showAndWait();
+					showMainMenu(primaryStage);
+				} catch (NoSuchAlgorithmException ee) {
+					System.out.println("Failed to create boss due to hashing error: " + ee.getMessage());
 				}
-				start.addEmployee(newEmployee);
-				Alert alert = new Alert(AlertType.INFORMATION, "New employee " + name + " added!");
-				alert.showAndWait();
-				showMainMenu(primaryStage);
+
 			} else {
 				Employee existingEmp = Payroll.findEmployeeById(selectedEmployee.getId());
 				Employee updatedEmployee;
 				if (empTypeChoice == 1) {
 					updatedEmployee = new Salaried(selectedEmployee.getId(), loginName, salary, name,
-							selectedEmployee.getAddedDate(), empTypeChoice);
+							selectedEmployee.getAddedDate(), empTypeChoice, existingEmp.getPasswordSalt(),
+							existingEmp.getPasswordHash());
 				} else {
 					updatedEmployee = new Hourly(selectedEmployee.getId(), loginName, name,
-							selectedEmployee.getAddedDate(), hourlyRate, empTypeChoice);
+							selectedEmployee.getAddedDate(), hourlyRate, empTypeChoice, existingEmp.getPasswordSalt(),
+							existingEmp.getPasswordHash());
 				}
 				start.removeEmployee(existingEmp);
 				start.addEmployee(updatedEmployee);
@@ -415,17 +435,19 @@ public class Main extends Application {
 		gridPane.add(titleLabel, 0, 0);
 		gridPane.add(loginNameLabel, 0, 1);
 		gridPane.add(loginNameTextField, 1, 1);
-		gridPane.add(nameLabel, 0, 2);
-		gridPane.add(nameTextField, 1, 2);
-		gridPane.add(empTypeLabel, 0, 3);
-		gridPane.add(salariedRadioButton, 1, 3);
-		gridPane.add(hourlyRadioButton, 1, 4);
-		gridPane.add(salaryLabel, 0, 5);
-		gridPane.add(salaryTextField, 1, 5);
-		gridPane.add(hourlyRateLabel, 0, 6);
-		gridPane.add(hourlyRateTextField, 1, 6);
-		gridPane.add(cancelButton, 0, 7);
-		gridPane.add(submitButton, 1, 7);
+		gridPane.add(passwordLabel, 0, 2);
+		gridPane.add(passwordField, 1, 2);
+		gridPane.add(nameLabel, 0, 3);
+		gridPane.add(nameTextField, 1, 3);
+		gridPane.add(empTypeLabel, 0, 4);
+		gridPane.add(salariedRadioButton, 1, 4);
+		gridPane.add(hourlyRadioButton, 1, 5);
+		gridPane.add(salaryLabel, 0, 6);
+		gridPane.add(salaryTextField, 1, 6);
+		gridPane.add(hourlyRateLabel, 0, 7);
+		gridPane.add(hourlyRateTextField, 1, 7);
+		gridPane.add(cancelButton, 0, 8);
+		gridPane.add(submitButton, 1, 8);
 
 		// create scene and set it on the primary stage
 		Scene scene = new Scene(new BorderPane(gridPane), 400, 400);
@@ -529,21 +551,14 @@ public class Main extends Application {
 			String password = passwordField.getText();
 			System.out.println("Login name: " + loginName);
 			System.out.println("Password: " + password);
-			boolean userFound = false;
-			for (Employee employee : empList) {
-				if (employee.getLoginName().equals(loginName)) {
-					currentUser = employee;
-					userFound = true;
-					System.out.println("Login Successfull!!!\n");
-					System.out.println("Logged in as " + currentUser.getName() + ". \n");
-					break;
-				}
-			}
+			Employee loginEmployee = Payroll.login(loginName, password);
 
-			if (!userFound) {
+			if (loginEmployee == null) {
 				Alert alert = new Alert(AlertType.ERROR, "Login Credentians doesn't match.");
 				alert.showAndWait();
 				return;
+			} else {
+				currentUser = loginEmployee;
 			}
 			showMainMenu(primaryStage);
 		});
