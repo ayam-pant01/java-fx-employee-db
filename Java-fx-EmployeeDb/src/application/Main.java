@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.HPos;
@@ -27,7 +26,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -54,25 +52,26 @@ public class Main extends Application {
 	private static void showPayEmployeesScreen(Stage primaryStage) {
 
 		// create table view to display employee data
+
 		TableView<Employee> payEmpTable = new TableView<>();
 		payEmpTable.setEditable(false);
 		double totalPay = 0;
 		for (Employee employee : empList) {
-			if(employee.getType() == 2) {
+			if (employee.getType() == 2) {
 				TextInputDialog dialog = new TextInputDialog();
-				dialog.setTitle("Enter " +employee.getName() + " total hours");
+				dialog.setTitle("Enter " + employee.getName() + " total hours");
 				dialog.setHeaderText(null);
 				dialog.setContentText("Please enter hours:");
 
 				Optional<String> result = dialog.showAndWait();
 
 				if (result.isPresent()) {
-				    try {
-				        double number = Double.parseDouble(result.get());
-				        employee.setHours(number);
-				    } catch (NumberFormatException e) {
-				        // Handle invalid input
-				    }
+					try {
+						double number = Double.parseDouble(result.get());
+						employee.setHours(number);
+					} catch (NumberFormatException e) {
+						// Handle invalid input
+					}
 				}
 			}
 			totalPay += employee.getPay();
@@ -83,7 +82,8 @@ public class Main extends Application {
 		TableColumn<Employee, String> nameColumn = new TableColumn<>("Name");
 		nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
 		TableColumn<Employee, Double> payColumn = new TableColumn<>("Pay");
-		payColumn.setCellValueFactory(cellData -> Bindings.createObjectBinding(() -> Double.valueOf(String.format("%.2f", cellData.getValue().getPay()))));
+		payColumn.setCellValueFactory(cellData -> Bindings
+				.createObjectBinding(() -> Double.valueOf(String.format("%.2f", cellData.getValue().getPay()))));
 
 		// add columns to table view
 		payEmpTable.getColumns().addAll(idColumn, nameColumn, payColumn);
@@ -171,7 +171,8 @@ public class Main extends Application {
 					}
 				} else {
 					if (currentUser.getId() != 0 && currentUser.getId() != employee.getId()) {
-						Alert alert = new Alert(AlertType.ERROR, "You are not authorized to change this employee data.");
+						Alert alert = new Alert(AlertType.ERROR,
+								"You are not authorized to change this employee data.");
 						alert.showAndWait();
 						return;
 					}
@@ -224,12 +225,11 @@ public class Main extends Application {
 		} else {
 			System.out.print("ComesHere");
 			if (currentUser.getId() != 0) {
-				List<Employee> filteredList = empList.stream()
-					    .filter(emp -> emp.getId() == currentUser.getId())
-					    .collect(Collectors.toList());
+				List<Employee> filteredList = empList.stream().filter(emp -> emp.getId() == currentUser.getId())
+						.collect(Collectors.toList());
 				employeeTable.getItems().addAll(filteredList);
-			}else {
-				employeeTable.getItems().addAll(empList);				
+			} else {
+				employeeTable.getItems().addAll(empList);
 			}
 		}
 
