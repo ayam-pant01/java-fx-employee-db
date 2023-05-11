@@ -24,7 +24,6 @@ public class Salaried extends Employee {
     }
     
     public String toString() {
-//        return "Salaried Employee: " + super.toString();
         return super.toString();
     }
 }

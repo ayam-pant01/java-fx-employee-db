@@ -94,67 +94,6 @@ public class Payroll {
 
 	}
 
-	/**
-	 * this method is used to display menu to the user This system doesn't not allow
-	 * to do anything without logging in. So user has to login first before
-	 * accessing menu options.
-	 */
-//	public static void displayMenu() {
-//		if (currentUser == null) {
-//			System.out.println("Please login before using the system.\n");
-//			login();
-//		}
-//		try {
-//			int choice = -1;
-//			do {
-//				System.out.println(Payroll.menu);
-//				System.out.println("Choose from the above options.");
-//				try {
-//					choice = inputSc.nextInt();
-//					if (choice < 0 || choice > 8) {
-//						String junk = inputSc.nextLine();
-//						System.out.printf("Bad input.:  %s %s\n", choice, junk);
-//					}
-//				} catch (Exception e) {
-//					String junk = inputSc.nextLine();
-//					System.out.printf("Input needs to be a number:  %s\n", junk);
-//				}
-//			} while (choice < 0 || choice > 8);
-//
-//			switch (choice) {
-//			case 0:
-//				exitSystem();
-//				break;
-//			case 1:
-//				login();
-//				break;
-//			case 2:
-//				createEmployee(false);
-//				break;
-//			case 3:
-//				listEmployees();
-//				break;
-//			case 4:
-//				changeEmployeeData();
-//				break;
-//			case 5:
-//				terminateEmployee();
-//				break;
-//			case 6:
-//				payEmployees();
-//				break;
-//			case 7:
-//				listTerminatedEmployees();
-//				break;
-//			case 8:
-//				saveChanges();
-//				break;
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-
 	public static void saveChanges() {
 		Payroll.writeEmployeeListtoFile(employeeList, EMOLOYEE_LIST);
 		Payroll.writeEmployeeListtoFile(terminatedEmployeeList, TERMINATED_EMPLOYEE_LIST);
@@ -169,23 +108,6 @@ public class Payroll {
 		Employee newEmployee = new Salaried(loginName, 50000.00, name, convertDateToString(curDate), empTypeChoice);
 		employeeList.add(newEmployee);
 		currentUser = newEmployee;
-	}
-
-	/**
-	 * method to list terminated employees
-	 */
-	private static void listTerminatedEmployees() {
-		if (currentUser.getId() == 0) {
-			for (Employee employee : terminatedEmployeeList) {
-				System.out.println(employee.toString());
-			}
-		} else {
-			for (Employee employee : terminatedEmployeeList) {
-				if (employee.getLoginName().equals(currentUser.getLoginName())) {
-					System.out.println(employee.toString());
-				}
-			}
-		}
 	}
 
 	/**
@@ -277,22 +199,6 @@ public class Payroll {
 			}
 		}
 		return null;
-	}
-
-	public static int promptForInt(String message) {
-		Scanner scanner = new Scanner(System.in);
-		int input;
-		while (true) {
-			System.out.print(message);
-			try {
-				input = Integer.parseInt(scanner.nextLine());
-				break;
-			} catch (NumberFormatException e) {
-				System.out.println("Invalid input. Please enter an integer.");
-			}
-		}
-//		scanner.close();
-		return input;
 	}
 
 }

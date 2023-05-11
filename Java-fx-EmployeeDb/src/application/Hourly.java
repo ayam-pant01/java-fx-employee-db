@@ -30,17 +30,8 @@ public class Hourly extends Employee {
         this.hoursWorked = 0;
     }
     
-
-//    @Override
-//    public double getPay() {
-//        double pay = this.hoursWorked * this.hourlyRate;
-//        return pay;
-//    }
-    
     @Override
     public double getPay() {
-//        Scanner input = new Scanner(System.in);
-//        System.out.print("Enter the number of hours worked during this pay period: ");
         double pay = this.hoursWorked * this.hourlyRate;
         return pay;
     }
